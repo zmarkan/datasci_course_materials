@@ -1,22 +1,47 @@
 import sys
+import json
 
 def lines(fp):
     print str(len(fp.readlines()))
 
+def createWordList(line):
+    wordList2 =[]
+    wordList1 = line.split()
+    for word in wordList1:
+        cleanWord = ""
+        for char in word:
+            if char in '!,.?":;':
+                char = ""
+            cleanWord += char
+        wordList2.append(cleanWord)
+    return wordList2
+
+def calculateSentiment(tweet, scores):
+    sentiment = 0
+    if "text" in tweet:
+        text = tweet["text"]
+        word_list = createWordList(text)
+        for word in word_list:
+            if word in scores:
+                sentiment = sentiment + scores[word]
+                break
+    return sentiment
+
 def main():
     scores = {}
-    afinn_file = open("AFINN-111.txt")
+
+    sent_file_name = sys.argv[1]
+
     sent_file = open(sys.argv[1])
     tweet_file = open(sys.argv[2])
-    lines(sent_file)
-    lines(tweet_file)
 
-    for line in afinn_file:
+    for line in sent_file:
         term, score  = line.split("\t")  # The file is tab-delimited. "\t" means "tab character"
         scores[term] = int(score)  # Convert the score to an integer.
 
-    print scores.items() # Print every (term, score) pair in the dictionaryterm
-
+    for tweet_line in tweet_file:
+        tweet = json.loads(tweet_line)
+        print calculateSentiment(tweet, scores)
 
 if __name__ == '__main__':
     main()
